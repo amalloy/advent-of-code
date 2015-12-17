@@ -54,3 +54,9 @@ parseShift dir amt src = Unary (Shift ((case dir of
                                            'R' -> negate)
                                        $ read amt))
                          src
+
+part1 :: [Wire] -> Int
+part1 wires = eval circuit "a"
+  where circuit = M.fromList [(label, source) | (Wire label source) <- wires]
+
+main = interact $ show . part1 . map parse . lines
