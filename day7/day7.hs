@@ -1,6 +1,7 @@
 import Data.Bits
 import qualified Data.Map as M
 import Data.Maybe
+import Control.Monad.Trans.State
 
 type Label = String
 data Unary = Id | Not | Shift Int deriving Show
@@ -16,15 +17,17 @@ data Source = Const Int
 data Wire = Wire Label Source deriving Show
 type Circuit = M.Map Label Source
 
-eval :: Circuit -> Label -> Int
-eval c s = go (case M.lookup s c of
-                  (Just source) -> source
-                  Nothing -> error $ "No wire named " ++ s)
-  where go (Const x) = x
-        go (Unary op label) = runUnary op (eval c label)
-        go (Binary op x y) = runBinary op (process x) (process y)
-        process (Source x) = x
-        process (From wire) = eval c wire
+eval :: Label -> State Circuit Int
+eval s = do
+  old <- gets (M.! s)
+  new <- go old
+  modify (M.insert s (Const new))
+  return new
+  where go (Const x) = return x
+        go (Unary op label) = runUnary op <$> eval label
+        go (Binary op x y) = runBinary op <$> (process x) <*> (process y)
+        process (Source x) = return x
+        process (From wire) = eval wire
 
 runUnary :: Unary -> Int -> Int
 runUnary Id = id
@@ -67,7 +70,7 @@ parseShift dir amt src = Unary (Shift ((case dir of
                          src
 
 part1 :: [Wire] -> Int
-part1 wires = eval circuit "a"
+part1 wires = evalState (eval "a") circuit
   where circuit = M.fromList [(label, source) | (Wire label source) <- wires]
 
 main = interact $ show . part1 . map parse . lines
