@@ -69,8 +69,14 @@ parseShift dir amt src = Unary (Shift ((case dir of
                                        $ read amt))
                          src
 
-part1 :: [Wire] -> Int
-part1 wires = evalState (eval "a") circuit
-  where circuit = M.fromList [(label, source) | (Wire label source) <- wires]
+solve :: Circuit -> Int
+solve = evalState (eval "a")
 
-main = interact $ show . part1 . map parse . lines
+build :: [Wire] -> Circuit
+build wires = M.fromList [(label, source) | (Wire label source) <- wires]
+
+parts :: Circuit -> (Int, Int)
+parts c = (wireA, solve (M.insert "b" (Const wireA) c))
+  where wireA = solve c
+
+main = interact $ show . parts . build . map parse . lines
