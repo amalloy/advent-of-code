@@ -14,10 +14,12 @@ data Wire = Wire Label Source
 type Circuit = M.Map Label Source
 
 eval :: Circuit -> Label -> Int
-eval c s = go (fromJust $ M.lookup s c) where
-  go (Const x) = x
-  go (Unary op label) = runUnary op (eval c label)
-  go (Binary op x y) = runBinary op (eval c x) (eval c y)
+eval c s = go (case M.lookup s c of
+                  (Just source) -> source
+                  Nothing -> error $ "No wire named " ++ s)
+  where go (Const x) = x
+        go (Unary op label) = runUnary op (eval c label)
+        go (Binary op x y) = runBinary op (eval c x) (eval c y)
 
 runUnary :: Unary -> Int -> Int
 runUnary Id = id
