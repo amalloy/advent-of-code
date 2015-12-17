@@ -14,11 +14,28 @@ data Source = Const Int
 data Wire = Wire Label Source deriving Show
 type Circuit = M.Map Label Source
 
-eval :: Circuit -> Label -> Int
-eval c s = go (case M.lookup s c of
-                  (Just source) -> source
-                  Nothing -> error $ "No wire named " ++ s)
-  where go (Const x) = x
+data Traced a = Fault String [Wire] | Result a deriving Show
+
+instance Functor Traced where
+  fmap f (Fault cause trace) = Fault cause trace
+  fmap f (Result a) = Result (f a)
+
+instance Applicative Traced where
+  pure = Result
+  (Fault cause trace) <*> _ = Fault cause trace
+  _ <*> (Fault cause trace) = Fault cause trace
+  (Result f) <*> (Result x) = Result f x
+
+instance Monad Traced where
+  return = pure
+  (Fault cause trace) >>= f = Fault cause trace
+  (Result x) >>= f = f x
+
+eval :: Circuit -> Label -> Traced Int
+eval c s = (case M.lookup s c of
+               (Just source) -> go source
+               Nothing -> Fault ("No label: " ++ s) []
+  where go (Const x) = Result x
         go (Unary op label) = runUnary op (eval c label)
         go (Binary op x y) = runBinary op (eval c x) (eval c y)
 
