@@ -3,14 +3,15 @@ import qualified Data.Map as M
 import Data.Maybe
 
 type Label = String
-data Unary = Id | Not | Shift Int
-data Binary = And | Or
+data Unary = Id | Not | Shift Int deriving Show
+data Binary = And | Or deriving Show
 
 data Source = Const Int
             | Unary Unary Label
             | Binary Binary Label Label
+            deriving Show
 
-data Wire = Wire Label Source
+data Wire = Wire Label Source deriving Show
 type Circuit = M.Map Label Source
 
 eval :: Circuit -> Label -> Int
