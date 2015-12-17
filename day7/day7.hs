@@ -6,9 +6,11 @@ type Label = String
 data Unary = Id | Not | Shift Int deriving Show
 data Binary = And | Or deriving Show
 
+data Operand = Source Int | From Label deriving Show
+
 data Source = Const Int
             | Unary Unary Label
-            | Binary Binary Label Label
+            | Binary Binary Operand Operand
             deriving Show
 
 data Wire = Wire Label Source deriving Show
@@ -20,7 +22,9 @@ eval c s = go (case M.lookup s c of
                   Nothing -> error $ "No wire named " ++ s)
   where go (Const x) = x
         go (Unary op label) = runUnary op (eval c label)
-        go (Binary op x y) = runBinary op (eval c x) (eval c y)
+        go (Binary op x y) = runBinary op (process x) (process y)
+        process (Source x) = x
+        process (From wire) = eval c wire
 
 runUnary :: Unary -> Int -> Int
 runUnary Id = id
@@ -48,8 +52,12 @@ parseBinary :: String -> Label -> Label -> Label -> Wire
 parseBinary op left right dst = Wire dst $
                                 case op of
                                   (dir:"SHIFT") -> parseShift dir right left
-                                  "AND" -> Binary And left right
-                                  "OR" -> Binary Or left right
+                                  "AND" -> Binary And l r
+                                  "OR" -> Binary Or l r
+  where [l, r] = map operand [left, right]
+        operand x = case reads x of
+          [(n, "")] -> Source n
+          [] -> From x
 
 parseShift :: Char -> String -> Label -> Source
 parseShift dir amt src = Unary (Shift ((case dir of
