@@ -10,6 +10,6 @@ expand :: [Int] -> [[Int]]
 expand = iterate lookAndSay
 
 solve :: Int -> [[Int]] -> Int
-solve times= length . (!! times)
+solve times = length . (!! times)
 
 main = interact $ show . (solve 40 &&& solve 50) . expand . map digitToInt . filter isDigit
