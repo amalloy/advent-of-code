@@ -40,6 +40,7 @@ ruleList = [exclude (map Clamp "ilo"), needsStraight 3, needsGroups 2 2]
 exclude :: (Enum a, Bounded a, Eq a) => [a] -> Rule [a]
 exclude xs = Rule (any (`elem` xs)) (skipOver (`elem` xs))
 
+-- pred should return False if the rule is broken
 basicRule :: (Bounded a, Enum a, Eq a) => ([a] -> Bool) -> Rule [a]
 basicRule pred = Rule (not . pred) inc
 
@@ -51,7 +52,8 @@ buildStraight n x | x == minBound = Nothing
 needsStraight :: (Enum a, Bounded a, Eq a) => Int -> Rule [a]
 needsStraight n = basicRule hasStraight
   where hasStraight [] = False
-        hasStraight s@(x:xs) = (maybe False (`isPrefixOf` s) $ buildStraight n x) || hasStraight xs
+        hasStraight s@(x:xs) = (maybe False (`isPrefixOf` s) $ buildStraight n x)
+                               || hasStraight xs
 
 needsGroups :: Int -> Int -> Rule [Clamped]
 needsGroups groupSize numGroups = basicRule (findGroups numGroups)
