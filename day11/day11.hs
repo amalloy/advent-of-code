@@ -46,14 +46,18 @@ basicRule pred = Rule (not . pred) inc
 
 buildStraight :: (Enum a, Bounded a, Eq a) => Int -> a -> Maybe [a]
 buildStraight 0 x = Just []
+buildStraight 1 x = Just [x]
 buildStraight n x | x == minBound = Nothing
                   | otherwise = (x :) <$> buildStraight (n-1) (pred x)
 
+hasStraight :: (Enum a, Bounded a, Eq a) => Int -> [a] -> Bool
+hasStraight n = go
+  where go [] = False
+        go s@(x:xs) = (maybe False (`isPrefixOf` s) $ buildStraight n x)
+                      || go xs
+
 needsStraight :: (Enum a, Bounded a, Eq a) => Int -> Rule [a]
-needsStraight n = basicRule hasStraight
-  where hasStraight [] = False
-        hasStraight s@(x:xs) = (maybe False (`isPrefixOf` s) $ buildStraight n x)
-                               || hasStraight xs
+needsStraight n = basicRule (hasStraight n)
 
 needsGroups :: Int -> Int -> Rule [Clamped]
 needsGroups groupSize numGroups = basicRule (findGroups numGroups)
