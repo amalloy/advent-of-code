@@ -65,6 +65,7 @@ needsGroups groupSize numGroups = basicRule (findGroups numGroups)
         findGroups _ [] = False
         findGroups numGroups s@(x:xs) = replicate groupSize x `isPrefixOf` s
                                         && findGroups (numGroups-1) (drop groupSize s)
+                                        || findGroups numGroups xs
 
 solve = reverse . map unClamp . runRules ruleList . map Clamp . reverse
 
