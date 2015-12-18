@@ -2,6 +2,7 @@
 
 import Data.Maybe (mapMaybe, maybe)
 import Data.List (isPrefixOf)
+import Control.Arrow
 
 data Rule a = Rule {breaks :: a -> Bool, fix :: a -> a}
 
@@ -67,6 +68,6 @@ needsGroups groupSize numGroups = basicRule (findGroups numGroups)
                                         && findGroups (numGroups-1) (drop groupSize s)
                                         || findGroups numGroups xs
 
-solve = reverse . map unClamp . runRules ruleList . map Clamp . reverse
+solve = reverse . map unClamp . runRules ruleList . inc . map Clamp . reverse
 
-main = interact $ show . solve . head . lines
+main = interact $ show . (id &&& solve) . solve . head . lines
