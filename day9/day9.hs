@@ -4,7 +4,7 @@ type City = String
 type Distance = Int
 data Route = Route City City Distance deriving Show
 data Trip = Trip City Distance deriving Show
-data Progress = Progress City Distance [Route]
+data Progress = Progress {currentCity :: City, distance :: Distance, flights :: [Route]}
 
 parse :: String -> Route
 parse s = case words s of
