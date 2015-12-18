@@ -1,4 +1,5 @@
-import Data.Maybe
+import Data.Maybe (catMaybes, isNothing)
+import Data.List (nub)
 
 type City = String
 type Distance = Int
@@ -17,6 +18,12 @@ destination c (Route a b dist)
   | otherwise = Nothing
   where go x = Just $ Trip x dist
 
+cities :: Route -> [City]
+cities (Route a b _) = [a,b]
+
+allCities :: [Route] -> [City]
+allCities = nub . concatMap cities
+
 trips :: City -> [Route] -> [Trip]
 trips from = catMaybes . map (destination from)
 
@@ -24,3 +31,21 @@ advance :: Progress -> [Progress]
 advance (Progress city dist routes) = do
   (Trip to dist') <- trips city routes
   return . Progress to (dist + dist') $ filter (isNothing . destination city) routes
+
+exhaust :: Progress -> [Progress]
+exhaust state@(Progress city dist routes) =
+  case (advance state, routes) of
+    ([], []) -> return state -- visited all cities
+    ([], _) -> [] -- out of options, but cities left unvisited
+    (nexts, _) -> nexts >>= exhaust
+
+solutions :: [Route] -> [Progress]
+solutions routes = do
+  start <- allCities routes
+  solution <- exhaust $ Progress start 0 routes
+  return solution
+
+part1 :: [Route] -> Distance
+part1 = minimum . map distance . solutions
+
+main = interact $ show . part1 . map parse . lines
