@@ -62,4 +62,6 @@ needsGroups groupSize numGroups = basicRule (findGroups numGroups)
         findGroups numGroups s@(x:xs) = replicate groupSize x `isPrefixOf` s
                                         && findGroups (numGroups-1) (drop groupSize s)
 
-main = interact $ reverse . map unClamp . runRules ruleList . map Clamp . reverse
+solve = reverse . map unClamp . runRules ruleList . map Clamp . reverse
+
+main = interact $ show . solve . head . lines
