@@ -6,5 +6,8 @@ parse :: String -> Route
 parse s = case words s of
   [a, "to", b, "=", dist] -> Route a b (read dist)
 
-includes :: City -> Route -> Bool
-includes c (Route a b) = c == a || c == b
+destination :: City -> Route -> Maybe City
+destination c (Route a b dest)
+  | c == a = Just b
+  | c == b = Just a
+  | otherwise = Nothing
