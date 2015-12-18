@@ -1,5 +1,6 @@
 import Data.List (group)
 import Data.Char (digitToInt, isDigit)
+import Control.Arrow
 
 lookAndSay :: [Int] -> [Int]
 lookAndSay xs = group xs >>= describe
@@ -8,7 +9,7 @@ lookAndSay xs = group xs >>= describe
 expand :: [Int] -> [[Int]]
 expand = iterate lookAndSay
 
-part1 :: [[Int]] -> Int
-part1 = length . (!! 40)
+solve :: Int -> [[Int]] -> Int
+solve times= length . (!! times)
 
-main = interact $ show . part1 . expand . map digitToInt . filter isDigit
+main = interact $ show . (solve 40 &&& solve 50) . expand . map digitToInt . filter isDigit
