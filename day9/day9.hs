@@ -1,5 +1,6 @@
 import Data.Maybe (catMaybes, isNothing)
 import Data.List (nub)
+import Control.Arrow
 
 type City = String
 type Distance = Int
@@ -45,7 +46,7 @@ solutions routes = do
   solution <- exhaust $ Progress start 0 routes
   return solution
 
-part1 :: [Route] -> Distance
-part1 = minimum . map distance . solutions
+solve :: [Route] -> [Distance]
+solve = map distance . solutions
 
-main = interact $ show . part1 . map parse . lines
+main = interact $ show . (minimum &&& maximum) . solve . map parse . lines
