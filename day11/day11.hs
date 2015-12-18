@@ -59,4 +59,11 @@ needsStraight n = basicRule hasStraight
   where hasStraight [] = False
         hasStraight s@(x:xs) = (maybe False (`isPrefixOf` s) $ buildStraight n x) || hasStraight xs
 
-needsGroups = undefined
+needsGroups :: Int -> Int -> Rule [Clamped]
+needsGroups groupSize numGroups = basicRule (findGroups numGroups)
+  where findGroups 0 s = True
+        findGroups _ [] = False
+        findGroups numGroups s@(x:xs) = replicate groupSize x `isPrefixOf` s
+                                        && findGroups (numGroups-1) (drop groupSize s)
+
+main = interact $ reverse . map unClamp . runRules ruleList . map Clamp . reverse
