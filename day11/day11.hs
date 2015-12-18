@@ -24,12 +24,6 @@ skipOver pred orig = go 0 orig
         go n (x:xs) | pred x = replicate n minBound ++ skipOver pred (inc (x:xs))
                     | otherwise = go (n + 1) xs
 
-valid :: [Rule a] -> a -> Bool
-valid rules xs = not (any (flip breaks xs) rules)
-
-iterateUntil :: (a -> a) -> (a -> Bool) -> a -> a
-iterateUntil f pred xs = head . dropWhile (not . pred) $ iterate f xs
-
 applyRule :: a -> Rule a -> Maybe a
 applyRule x r | breaks r x = Just $ fix r x
               | otherwise = Nothing
