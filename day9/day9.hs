@@ -9,8 +9,8 @@ data Trip = Trip City Distance deriving Show
 data Progress = Progress {currentCity :: City, distance :: Distance, flights :: [Route]}
 
 parse :: String -> Route
-parse s = case words s of
-  [a, "to", b, "=", dist] -> Route a b (read dist)
+parse s = Route a b (read dist)
+  where [a, "to", b, "=", dist] = words s
 
 destination :: City -> Route -> Maybe Trip
 destination c (Route a b dist)
@@ -31,12 +31,12 @@ trips from = catMaybes . map (destination from)
 advance :: Progress -> [Progress]
 advance (Progress city dist routes) = do
   (Trip to dist') <- trips city routes
-  return . Progress to (dist + dist') $ filter (isNothing . destination city) routes
+  return . Progress to (dist + dist') . filter (isNothing . destination city) $ routes
 
 exhaust :: Progress -> [Progress]
 exhaust state@(Progress city dist routes) =
   case (advance state, routes) of
-    ([], []) -> return state -- visited all cities
+    (_, []) -> return state -- visited all cities
     ([], _) -> [] -- out of options, but cities left unvisited
     (nexts, _) -> nexts >>= exhaust
 
