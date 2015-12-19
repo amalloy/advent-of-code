@@ -1,9 +1,9 @@
 import qualified Data.Map as M
+import Control.Arrow
 
 -- units
 type Distance = Int
 type Time = Int
-type Name = String
 
 -- reindeer descriptors
 data State = Resting Time | Running Time deriving Show
@@ -24,15 +24,27 @@ rDist = dist . position
 addPoints :: Int -> Reindeer -> Reindeer
 addPoints n r@(Reindeer {position = pos}) = r {position = pos {points = n + points pos}}
 
-run :: Stats -> Reindeer -> Reindeer
-run s r = r {position = pos (position r)}
-  where pos (Position d p state) = case state of
+pointsFor :: Distance -> Reindeer -> Reindeer
+pointsFor d r = addPoints n r
+  where n = if rDist r == d then 1
+            else 0
+
+run :: Reindeer -> Reindeer
+run r = r {position = pos (position r)}
+  where s = stats r
+        pos (Position d p state) = case state of
           (Resting 0) -> Position (d + speed s) p (Running (burst s))
           (Resting n) -> Position d p (Resting (n - 1))
           (Running 0) -> Position d p (Resting (rest s))
           (Running n) -> Position (d + speed s) p (Running (n - 1))
 
 race :: Time -> [Reindeer] -> [Reindeer]
-race secs = undefined
+race secs racers = iterate raceOnce racers !! secs where
+  raceOnce racers = let racers' = map run racers
+                        highScore = maximum . map rDist $ racers'
+                    in map (pointsFor highScore) racers'
 
--- main = interact $ show . maximum . map (dist . position) . race 2503 . map parse . lines
+part1 = maximum . map rDist
+part2 = maximum . map (points . position)
+
+main = interact $ show . (part1 &&& part2) . race 2503 . map parse . lines
