@@ -8,13 +8,14 @@ type Stat = String -- flavor, etc
 data Factor = Factor Stat Int
 type Impact = [Factor]
 type Recipe = M.Map Ingredient Int
-type Cookbook = (M.Map Ingredient Impact)
+type Cookbook = M.Map Ingredient Impact
+type Cookie = M.Map Stat Int
 type Bakery = Reader Cookbook
 
 updateIn :: Ord k => M.Map k v -> k -> (v -> v -> v) -> v -> M.Map k v
 updateIn m k f v = M.unionWith f m $ M.singleton k v
 
-bake :: Recipe -> Bakery (M.Map Stat Int)
+bake :: Recipe -> Bakery Cookie
 bake = foldM mix M.empty . M.toList where
   mix m (ingredient, amount) = do
     impact <- asks (M.! ingredient)
@@ -38,4 +39,14 @@ mixes n (x:xs) = do
   rest <- mixes (n - xAmt) xs
   return $ M.insert x xAmt rest
 
-main = interact $ show . parseAll
+score :: Cookie -> Int
+score = product . map (max 0) . M.elems
+
+makeCookies :: Cookbook -> [Cookie]
+makeCookies m = do
+  let ingrs = M.keys m
+  recipe <- mixes 100 (M.keys m)
+  return $ runReader (bake recipe) m
+
+
+main = interact $ show . maximum . map (score . M.delete "calories") . makeCookies . parseAll
