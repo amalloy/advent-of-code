@@ -27,3 +27,8 @@ run s (Position d (Running n)) = Position (d + speed s) (Running (n - 1))
 runFor :: Time -> Reindeer -> Reindeer
 runFor n r = r {position = newPos}
   where newPos = iterate (run (stats r)) (position r) !! n
+
+race :: Time -> [Reindeer] -> [Reindeer]
+race secs = map (runFor secs)
+
+main = interact $ show . maximum . map (dist . position) . race 2503 . map parse . lines
