@@ -1,4 +1,5 @@
 import qualified Data.Map as M
+import Control.Arrow
 import Control.Monad.Trans.Reader
 import Control.Monad (foldM)
 
@@ -48,5 +49,10 @@ makeCookies m = do
   recipe <- mixes 100 (M.keys m)
   return $ runReader (bake recipe) m
 
+solve :: [Cookie] -> Int
+solve = maximum . map (score . M.delete "calories")
 
-main = interact $ show . maximum . map (score . M.delete "calories") . makeCookies . parseAll
+hasCalories :: Int ->Cookie -> Bool
+hasCalories n c = c M.! "calories" == n
+
+main = interact $ show . (solve &&& solve . filter (hasCalories 500)) . makeCookies . parseAll
