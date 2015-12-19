@@ -48,10 +48,13 @@ persons c = nub $ do
   (a, b) <- M.keys c
   [a, b]
 
-solve :: Chart -> Happiness
-solve c = maximum $ do
-  let ps = persons c
+arrange :: Chart -> [Person] -> Happiness
+arrange c ps = maximum $ do
   order <- permutations ps
   return . sum . map impact $ matches c (pairings order)
+
+solve :: Chart -> (Happiness, Happiness)
+solve c = let ps = persons c
+          in (arrange c ps, arrange c ("Me":ps))
 
 main = interact $ show . solve . plan . map parse . lines
