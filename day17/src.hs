@@ -1,4 +1,4 @@
-import Control.Monad
+import Control.Arrow
 
 type Volume = Int
 type Container = Int
@@ -12,4 +12,11 @@ distribute 0 p = [p]
 distribute n [] = []
 distribute n (c:p) = distribute n p ++ ((c:) <$> distribute (n-c) p)
 
-main = interact $ show . length . distribute 150 . readPantry
+part1 :: [Pantry] -> Int
+part1 = length
+
+part2 :: [Pantry] -> Int
+part2 p = let n = minimum $ map length p
+          in length . filter ((== n) . length) $ p
+
+main = interact $ show . (part1 &&& part2) . distribute 150 . readPantry
