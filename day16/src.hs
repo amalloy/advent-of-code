@@ -1,6 +1,7 @@
 import System.IO
 import System.Environment
 import qualified Data.Map as M
+import Control.Arrow
 
 type Info = M.Map String Int
 
@@ -18,12 +19,27 @@ parse s = (read (init n), M.fromList (entries more))
         entries [k, v] = [(init k, read v)]
         entries (k:v:more) = (init k, read (init v)) : entries more
 
-satisfies :: Info -> Info -> Bool
-satisfies goal obj = all match (M.toList obj)
-  where match (k, v) = goal M.! k == v
+type KeyPred = (String -> Int -> Int -> Bool)
+
+satisfies :: KeyPred -> Info -> Info -> Bool
+satisfies f goal obj = all match (M.toList obj)
+  where match (k, v) = f k v (goal M.! k)
+
+part1 :: KeyPred
+part1 = const (==)
+
+part2 :: KeyPred
+part2 "cats" = (>)
+part2 "trees" = (>)
+part2 "pomeranians" = (<)
+part2 "goldfish" = (<)
+part2 _ = (==)
+
+solve :: KeyPred -> Info -> [(Int, Info)] -> Int
+solve f goal = fst . head . filter (satisfies f goal . snd)
 
 main = do
   [goalFile, searchFile] <- getArgs
   goal <- parseGoal <$> slurp goalFile
   sues <- map parse <$> slurp searchFile
-  print . fst . head . filter (satisfies goal . snd) $ sues
+  print . (solve part1 goal &&& solve part2 goal) $ sues
