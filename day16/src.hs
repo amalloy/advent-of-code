@@ -10,16 +10,16 @@ slurp p = lines <$> (hGetContents =<< openFile p ReadMode)
 
 parseGoal :: [String] -> Info
 parseGoal = M.fromList . map parsePiece
-  where parsePiece s = (init k, read v)
-          where [k, v] = words s
+  where parsePiece s = let [k,v] = words s
+                       in (init k, read v)
 
 parse :: String -> (Int, Info)
-parse s = (read (init n), M.fromList (entries more))
-  where ("Sue":n:more) = words s
-        entries [k, v] = [(init k, read v)]
+parse s = let ("Sue":n:more) = words s
+          in (read (init n), M.fromList (entries more))
+  where entries [k, v] = [(init k, read v)]
         entries (k:v:more) = (init k, read (init v)) : entries more
 
-type KeyPred = (String -> Int -> Int -> Bool)
+type KeyPred = String -> Int -> Int -> Bool
 
 satisfies :: KeyPred -> Info -> Info -> Bool
 satisfies f goal obj = all match (M.toList obj)

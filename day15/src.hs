@@ -52,7 +52,7 @@ makeCookies m = do
 solve :: [Cookie] -> Int
 solve = maximum . map (score . M.delete "calories")
 
-hasCalories :: Int ->Cookie -> Bool
+hasCalories :: Int -> Cookie -> Bool
 hasCalories n c = c M.! "calories" == n
 
 main = interact $ show . (solve &&& solve . filter (hasCalories 500)) . makeCookies . parseAll
