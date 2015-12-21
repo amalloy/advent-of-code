@@ -1,11 +1,9 @@
 import qualified Data.Map as M
 
-import Data.Set (Set)
-import qualified Data.Set as S
-
 import Data.Char (isUpper)
-import Data.List (nub)
+import Data.List (nub, isPrefixOf)
 import Control.Arrow
+import Control.Monad
 
 type Atom = String
 type Molecule = [Atom]
@@ -47,21 +45,23 @@ expansions m (x:xs) = leaveAlone ++ expandHere where
 expand :: Problem Atom -> [Molecule]
 expand (Problem grammar goal) = expansions grammar $ goal
 
+reductions :: Ord a => Grammar a -> [a] -> [[a]]
+reductions g [] = []
+reductions g all@(x:xs) = leaveAlone ++ reduceHere where
+  leaveAlone = (x:) <$> reductions g xs
+  reduceHere = do
+    (atom, replacements) <- M.toList g
+    rule <- replacements
+    guard $ rule `isPrefixOf` all
+    return $ atom : drop (length rule) all
+
 part1 :: Problem Atom -> Int
 part1 = length . nub . expand
 
-distinct :: Ord a => [a] -> [a]
-distinct = S.toList . S.fromList
-
-expansionTree :: Ord a => Grammar a -> [a] -> [[[a]]]
-expansionTree g m = iterate (filter possible . distinct . (>>= expansions g)) [m]
-  where possible solution = length solution <= goalLength
-        goalLength = length g
-
 part2 :: Problem Atom -> Int
 part2 (Problem grammar goal) =
-  let expansions = expansionTree grammar ["e"]
-      success = (goal `elem`)
-  in length . takeWhile (not . success) $ expansions
+  let steps = reductions grammar goal
+      success = ("e" `elem`)
+  in length . takeWhile (not . success) $ steps
 
 main = interact $ show . (part1 &&& part2) . parse
