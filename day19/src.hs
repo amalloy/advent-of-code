@@ -1,6 +1,11 @@
 import qualified Data.Map as M
+
+import Data.Set (Set)
+import qualified Data.Set as S
+
 import Data.Char (isUpper)
 import Data.List (nub)
+import Control.Arrow
 
 type Atom = String
 type Molecule = [Atom]
@@ -42,7 +47,21 @@ expansions m (x:xs) = leaveAlone ++ expandHere where
 expand :: Problem Atom -> [Molecule]
 expand (Problem grammar goal) = expansions grammar $ goal
 
-solve :: Problem Atom -> Int
-solve = length . nub . expand
+part1 :: Problem Atom -> Int
+part1 = length . nub . expand
 
-main = interact $ show . solve . parse
+distinct :: Ord a => [a] -> [a]
+distinct = S.toList . S.fromList
+
+expansionTree :: Ord a => Grammar a -> [a] -> [[[a]]]
+expansionTree g m = iterate (filter possible . distinct . (>>= expansions g)) [m]
+  where possible solution = length solution <= goalLength
+        goalLength = length g
+
+part2 :: Problem Atom -> Int
+part2 (Problem grammar goal) =
+  let expansions = expansionTree grammar ["e"]
+      success = (goal `elem`)
+  in length . takeWhile (not . success) $ expansions
+
+main = interact $ show . (part1 &&& part2) . parse
