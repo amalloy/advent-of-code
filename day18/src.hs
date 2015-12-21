@@ -21,8 +21,8 @@ grid8 = let ds = [0,-1,1]
 applyDelta :: Num a => (a,a) -> (a,a) -> (a,a)
 applyDelta (x,y) (x',y') = (x+x',y+y')
 
-neighbors8 :: Num a => (a,a) -> [(a,a)] -> [(a,a)]
-neighbors8 delta = fmap (applyDelta delta)
+neighbors8 :: Num a => [(a,a)] -> (a,a) -> [(a,a)]
+neighbors8 delta coord = fmap (applyDelta coord) delta
 
 nextBool :: Bool -> [Bool] -> Bool
 nextBool True others = length (filter id others) `elem` [2,3]
@@ -39,3 +39,11 @@ mkRow y lights = [((y,x),on) | (x,on) <- lights]
 
 parse :: String -> M.Map (Int,Int) Bool
 parse = M.fromList . concat . zipWith mkRow [0..] . rows
+
+life8 :: String -> Life (Int,Int) Bool
+life8 s = Life (neighbors8 grid8) nextBool (parse s)
+
+runFor :: Ord a => Int -> Life a b -> Life a b
+runFor n game = iterate advance game !! n
+
+main = interact $ show . length . filter id . M.elems . grid . runFor 100 . life8
