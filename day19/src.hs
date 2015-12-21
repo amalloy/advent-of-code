@@ -60,8 +60,8 @@ part1 = length . nub . expand
 
 part2 :: Problem Atom -> Int
 part2 (Problem grammar goal) =
-  let steps = reductions grammar goal
-      success = ("e" `elem`)
-  in length . takeWhile (not . success) $ steps
+  let steps = iterate (>>= (reductions grammar)) [goal]
+      success = (["e"] `elem`)
+  in  length . takeWhile (not . success) $ steps
 
 main = interact $ show . (part1 &&& part2) . parse
