@@ -1,6 +1,9 @@
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Combinator
 import qualified Data.Map as M
+import Control.Applicative (liftA3)
+import System.Environment
+import System.IO
 
 data Slot = Weapon | Armor | Ring deriving (Eq, Ord, Show)
 data Range = Range Int Int deriving Show
@@ -74,5 +77,30 @@ shopItem = do
   where skip = many1 (char ' ')
         num = read <$> many1 digit
 
-main = interact $ show . testParser
-  where testParser = runParser shopParser () "stdin"
+characterParser :: CharParser () Character
+characterParser = liftA3 Character stat stat stat where
+  stat = do
+    manyTill anyChar (char ':')
+    many space
+    read <$> many digit <* newline
+
+slurp :: FilePath -> IO String
+slurp p = hGetContents =<< openFile p ReadMode
+
+-- partial function, only works because input is always well formed
+doParse :: CharParser () a -> String -> a
+doParse p s = case runParser p () "input" s of
+  (Left e) -> error ":("
+  (Right x) -> x
+
+parseShop :: String -> Shop
+parseShop = doParse shopParser
+
+parseBoss :: String -> Character
+parseBoss = doParse characterParser
+
+main = do
+  [shopFile, bossFile] <- getArgs
+  shop <- parseShop <$> slurp shopFile
+  boss <- parseBoss <$> slurp bossFile
+  print boss
