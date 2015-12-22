@@ -50,6 +50,12 @@ shop s c = mconcat $ do
   (slot, range) <- M.toList c
   (s M.! slot) `choose` range
 
+main = do
+  [shopFile, bossFile] <- getArgs
+  shop <- parseShop <$> slurp shopFile
+  boss <- parseBoss <$> slurp bossFile
+  print boss
+
 shopParser :: CharParser () Shop
 shopParser = M.fromList <$> shopSection `sepBy` newline
 
@@ -98,9 +104,3 @@ parseShop = doParse shopParser
 
 parseBoss :: String -> Character
 parseBoss = doParse characterParser
-
-main = do
-  [shopFile, bossFile] <- getArgs
-  shop <- parseShop <$> slurp shopFile
-  boss <- parseBoss <$> slurp bossFile
-  print boss
