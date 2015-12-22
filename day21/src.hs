@@ -25,6 +25,16 @@ data Character = Character {health :: Int,
 type Shop = M.Map Slot [Item]
 type Constraints = M.Map Slot Range
 
+player :: Character
+player = Character 100 0 0
+
+human :: Constraints
+human = M.fromList [(Weapon, Range 1 1), (Armor, Range 0 1), (Ring, Range 0 2)]
+
+wearing :: Character -> Item -> Character
+(Character hp attack ac) `wearing` (Item cost damage armor) =
+  Character hp (attack + damage) (ac + armor)
+
 dec :: Range -> Range
 dec (Range 0 upper) = Range 0 (upper - 1)
 dec (Range lower upper) = Range (lower - 1) (upper - 1)
@@ -45,16 +55,22 @@ winsFight :: Character -> Character -> Bool
 winsFight hero villain = health hero > 0 && (health villain <= 0 || not (winsFight (hit hero villain) hero))
 
 -- returns a single "composite" item representing the sum of all chosen items
-shop :: Shop -> Constraints -> [Item]
-shop s c = mconcat $ do
-  (slot, range) <- M.toList c
-  (s M.! slot) `choose` range
+goShopping :: Shop -> Constraints -> [Item]
+goShopping shop c = let buy (slot, range) = (shop M.! slot) `choose` range
+                        sets = mapM buy $ M.toList c
+                    in map (mconcat . mconcat) sets
+
+boughtEnough :: Character -> Item -> Bool
+boughtEnough boss item = player `wearing` item `winsFight` boss
+
+part1 :: Constraints -> Character -> Shop -> Int
+part1 constr boss shop = minimum . map cost . filter (boughtEnough boss) $ goShopping shop constr
 
 main = do
   [shopFile, bossFile] <- getArgs
   shop <- parseShop <$> slurp shopFile
   boss <- parseBoss <$> slurp bossFile
-  print boss
+  print $ part1 human boss shop
 
 shopParser :: CharParser () Shop
 shopParser = M.fromList <$> shopSection `sepBy` newline
