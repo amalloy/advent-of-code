@@ -66,11 +66,15 @@ boughtEnough boss item = player `wearing` item `winsFight` boss
 part1 :: Constraints -> Character -> Shop -> Int
 part1 constr boss shop = minimum . map cost . filter (boughtEnough boss) $ goShopping shop constr
 
+part2 :: Constraints -> Character -> Shop -> Int
+part2 constr boss shop = maximum . map cost . filter (not . boughtEnough boss) $ goShopping shop constr
+
 main = do
   [shopFile, bossFile] <- getArgs
   shop <- parseShop <$> slurp shopFile
   boss <- parseBoss <$> slurp bossFile
   print $ part1 human boss shop
+  print $ part2 human boss shop
 
 shopParser :: CharParser () Shop
 shopParser = M.fromList <$> shopSection `sepBy` newline
