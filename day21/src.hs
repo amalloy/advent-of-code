@@ -47,8 +47,7 @@ winsFight hero villain = health hero > 0 && (health villain <= 0 || not (winsFig
 shop :: Shop -> Constraints -> [[Item]]
 shop s c = do
   (slot, range) <- M.toList c
-  choice <- (s M.! slot) `choose` range
-  return choice
+  (s M.! slot) `choose` range
 
 shopParser :: CharParser () Shop
 shopParser = M.fromList <$> shopSection `sepBy` newline
