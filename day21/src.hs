@@ -44,8 +44,9 @@ hit hero villain = villain {health = health villain - amt}
 winsFight :: Character -> Character -> Bool
 winsFight hero villain = health hero > 0 && (health villain <= 0 || not (winsFight (hit hero villain) hero))
 
-shop :: Shop -> Constraints -> [[Item]]
-shop s c = do
+-- returns a single "composite" item representing the sum of all chosen items
+shop :: Shop -> Constraints -> [Item]
+shop s c = mconcat $ do
   (slot, range) <- M.toList c
   (s M.! slot) `choose` range
 
