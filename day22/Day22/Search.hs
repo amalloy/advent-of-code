@@ -1,3 +1,5 @@
+module Day22.Search (Result(..), Problem(..), shortestPath) where
+
 import Control.Monad.Trans.State
 import qualified Data.Map.Strict as M
 
