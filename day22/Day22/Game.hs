@@ -57,9 +57,9 @@ runEffect effect combat@(Combat {player = p, boss = b}) =
     Poison -> adjustBossHP (-3) combat
     Recharge -> adjustPlayerHP 101 combat
 
-nexts :: Combat -> [Combat]
-nexts c = map runEffects $ case turn c of
-  BossTurn -> [runBossTurn c]
+nexts :: Combat -> [(MP, Combat)]
+nexts c = map (runEffects <$>) $ case turn c of
+  BossTurn -> [(0, runBossTurn c)]
   PlayerTurn -> runPlayerTurn c
 
 playerAC :: Combat -> Int
@@ -71,8 +71,8 @@ runBossTurn combat = let ac = playerAC combat
                          damage = max 1 (atk - ac)
                      in adjustPlayerHP (- damage) combat
 
-applySpell :: Combat -> (MP, Spell) -> Combat
-applySpell c (mana, spell) = adjustPlayerMP (negate mana) $ case spell of
+applySpell :: Combat -> Spell -> Combat
+applySpell c spell = case spell of
   (Effect e numTurn) -> c {activeEffects = (e, numTurn) : activeEffects c}
   (Instant Missile) -> adjustBossHP (-4) c
   (Instant Drain) -> adjustBossHP (-2) . adjustPlayerHP 2 $ c
@@ -85,5 +85,7 @@ applicableSpells c = do
     (Instant _) -> return s
     (Effect e _) -> bool [s] [] $ e `elem` (map fst (activeEffects c))
 
-runPlayerTurn :: Combat -> [Combat]
-runPlayerTurn c = applySpell c <$> applicableSpells c
+runPlayerTurn :: Combat -> [(MP, Combat)]
+runPlayerTurn c = do
+  (mp, spell) <- applicableSpells c
+  return $ (mp, adjustPlayerMP (negate mp) $ applySpell c spell)
