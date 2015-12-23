@@ -34,13 +34,13 @@ solve nexts eval = go
                 Progress -> mapM_ explore (nexts node) >> go
                   where explore (cost', node) = modify $ M.insertWith (++) (cost + cost') [(node:path)]
 
-
+tailOrDelete [] = Nothing
 tailOrDelete [x] = Nothing
 tailOrDelete (x:xs) = Just xs
 
 example :: Int -> Int -> Problem Int Int
 example from to = Problem from choices check
-  where choices n = [(1, n - 1), (3, n * 2)]
+  where choices n = [(1, n - 1), (1, n * 2), (40, n + 1)]
         check x | x == to = Success
                 | x == 0 = Failure
                 | otherwise = Progress
