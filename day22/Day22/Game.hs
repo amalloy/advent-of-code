@@ -37,7 +37,7 @@ adjustPlayerMP :: Int -> Combat -> Combat
 adjustPlayerMP amt combat@(Combat {player = p}) = combat {player = p {mp = mp p + amt}}
 
 adjustBossHP :: Int -> Combat -> Combat
-adjustBossHP amt combat@(Combat {boss = b}) = combat {boss = b {health = health b - amt}}
+adjustBossHP amt combat@(Combat {boss = b}) = combat {boss = b {health = health b + amt}}
 
 outcome :: Combat -> Result
 outcome c | health (boss c) <= 0 = Success
