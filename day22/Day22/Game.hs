@@ -7,9 +7,9 @@ import Control.Monad
 type MP = Int
 type Turns = Int
 
-data Effect = Shield | Poison | Recharge deriving (Enum, Eq)
-data Instant = Missile | Drain deriving (Enum, Eq)
-data Spell = Effect Effect Turns | Instant Instant
+data Effect = Shield | Poison | Recharge deriving (Enum, Eq, Show)
+data Instant = Missile | Drain deriving (Enum, Eq, Show)
+data Spell = Effect Effect Turns | Instant Instant deriving Show
 type Spellbook = [(MP, Spell)]
 
 wizardSpells :: Spellbook
@@ -20,15 +20,16 @@ wizardSpells = [(53, Instant Missile),
                 (229, Effect Recharge 5)]
 
 data Boss = Boss {health :: Int,
-                  attack :: Int}
+                  attack :: Int} deriving Show
 data Player = Player {hp :: Int,
-                      mp :: MP}
+                      mp :: MP} deriving Show
 
-data Turn = PlayerTurn | BossTurn
+data Turn = PlayerTurn | BossTurn deriving Show
 data Combat = Combat {turn :: Turn,
                       player :: Player,
                       boss :: Boss,
                       activeEffects :: [(Effect, Turns)]}
+              deriving Show
 
 adjustPlayerHP :: Int -> Combat -> Combat
 adjustPlayerHP amt combat@(Combat {player = p}) = combat {player = p {hp = hp p + amt}}
