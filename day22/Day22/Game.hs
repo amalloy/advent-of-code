@@ -2,6 +2,7 @@ module Day22.Game where
 
 import Day22.Search
 import Data.Bool (bool)
+import Control.Monad
 
 type MP = Int
 type Turns = Int
@@ -59,6 +60,7 @@ runEffect effect combat@(Combat {player = p, boss = b}) =
 nexts :: Combat -> [Combat]
 nexts c = map runEffects $ case turn c of
   BossTurn -> [runBossTurn c]
+  PlayerTurn -> runPlayerTurn c
 
 playerAC :: Combat -> Int
 playerAC combat = bool 0 7 $ Shield `elem` (map fst $ activeEffects combat)
@@ -68,3 +70,20 @@ runBossTurn combat = let ac = playerAC combat
                          atk = attack (boss combat)
                          damage = max 1 (atk - ac)
                      in adjustPlayerHP (- damage) combat
+
+applySpell :: Combat -> (MP, Spell) -> Combat
+applySpell c (mana, spell) = adjustPlayerMP (negate mana) $ case spell of
+  (Effect e numTurn) -> c {activeEffects = (e, numTurn) : activeEffects c}
+  (Instant Missile) -> adjustBossHP (-4) c
+  (Instant Drain) -> adjustBossHP (-2) . adjustPlayerHP 2 $ c
+
+applicableSpells :: Combat -> [(MP, Spell)]
+applicableSpells c = do
+  s@(mana, spell) <- wizardSpells
+  guard $ (mp (player c)) >= mana
+  case spell of
+    (Instant _) -> return s
+    (Effect e _) -> bool [s] [] $ e `elem` (map fst (activeEffects c))
+
+runPlayerTurn :: Combat -> [Combat]
+runPlayerTurn c = applySpell c <$> applicableSpells c
