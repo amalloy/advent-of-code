@@ -17,19 +17,28 @@ shortestPath (Problem root options eval) = evalState (solve options eval) (M.sin
 solve :: (Num cost, Ord cost) => (node -> [(cost, node)])
                                  -> (node -> Result)
                                  -> Search cost node (SearchResult cost node)
-solve next eval = go
+solve nexts eval = go
   where go = do
           empty <- gets M.null
           if empty
             then return Nothing
             else do
               (cost, (path:paths)) <- gets M.findMin
+              let (node:parents) = path
               modify $ M.updateMin tailOrDelete
-              case eval (head path) of
+              case eval node of
                 Success -> return . Just $ (cost, path)
                 Failure -> go
-                Progress -> undefined
+                Progress -> mapM_ explore (nexts node) >> go
+                  where explore (cost', node) = modify $ M.insertWith (++) (cost + cost') [(node:path)]
 
 
 tailOrDelete [x] = Nothing
 tailOrDelete (x:xs) = Just xs
+
+example :: Int -> Int -> Problem Int Int
+example from to = Problem from choices check
+  where choices n = [(1, n - 1), (3, n * 2)]
+        check x | x == to = Success
+                | x == 0 = Failure
+                | otherwise = Progress
