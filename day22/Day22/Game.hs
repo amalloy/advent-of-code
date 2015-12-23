@@ -56,10 +56,14 @@ runEffect effect combat@(Combat {player = p, boss = b}) =
   case effect of
     Shield -> combat -- effect is considered during attack phase
     Poison -> adjustBossHP (-3) combat
-    Recharge -> adjustPlayerHP 101 combat
+    Recharge -> adjustPlayerMP 101 combat
+
+switchTurns c@(Combat {turn=turn}) = c {turn = case turn of
+                                           BossTurn -> PlayerTurn
+                                           PlayerTurn -> BossTurn}
 
 nexts :: Combat -> [(MP, Combat)]
-nexts c = map (runEffects <$>) $ case turn c of
+nexts c = map (runEffects . switchTurns <$>) $ case turn c of
   BossTurn -> [(0, runBossTurn c)]
   PlayerTurn -> runPlayerTurn c
 
