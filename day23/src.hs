@@ -71,11 +71,8 @@ instruction = regInstr "tpl" (* 3) <|>
 
 offset :: CharParser () Offset
 offset = do
-  sign <- char '-' <|> char '+'
-  amt <- read <$> many digit
-  return $ case sign of
-    '-' -> negate amt
-    '+' -> amt
+  sign <- (char '-' >> return negate) <|> (char '+' >> return id)
+  sign . read <$> many digit
 
 parseLabel :: String -> CharParser () ()
 parseLabel s = try (string s) >> char ' ' >> return ()
