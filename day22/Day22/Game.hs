@@ -28,7 +28,9 @@ data Turn = PlayerTurn | BossTurn deriving Show
 data Combat = Combat {turn :: Turn,
                       player :: Player,
                       boss :: Boss,
-                      activeEffects :: [(Effect, Turns)]}
+                      activeEffects :: [(Effect, Turns)],
+                      hardMode :: Bool -- what a lame hack
+                     }
               deriving Show
 
 adjustPlayerHP :: Int -> Combat -> Combat
@@ -41,12 +43,19 @@ adjustBossHP :: Int -> Combat -> Combat
 adjustBossHP amt combat@(Combat {boss = b}) = combat {boss = b {health = health b + amt}}
 
 outcome :: Combat -> Result
-outcome c | health (boss c) <= 0 = Success
-          | hp (player c) <= 0 = Failure
+outcome c | hp (player c) <= 0 = Failure
+          | health (boss c) <= 0 = Success
           | otherwise = Progress
 
+applyHardMode :: Combat -> Combat
+applyHardMode c = case (hardMode c, turn c) of
+  (False, _) -> c
+  (True, PlayerTurn) -> c
+  (True, BossTurn) -> adjustPlayerHP (-1) c
+
 runEffects :: Combat -> Combat
-runEffects combat = decrementDurations $ foldr runEffect combat (fst <$> activeEffects combat)
+runEffects combat = applyHardMode . decrementDurations $
+                    foldr runEffect combat (fst <$> activeEffects combat)
   where decrementDurations c =
           let effects = activeEffects c
               effects' = filter ((/= 0) . snd) . map (fmap pred) $ effects
