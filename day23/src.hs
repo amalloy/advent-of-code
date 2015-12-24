@@ -35,8 +35,8 @@ jumpBy offset = modify $ changeIP offset
 doInstruction :: Instruction -> Operation
 doInstruction (JumpInstr offset) = jumpBy offset
 doInstruction (ConditionlalJumpInstr r pred offset) = do
-  v <- reg r <$> get
+  v <- gets (reg r)
   when (pred v) $ jumpBy offset
 doInstruction (RegisterInstr f r) = do
-  v <- reg r <$> get
+  v <- gets (reg r)
   modify $ changeIP 1 . writeReg r (f v)
