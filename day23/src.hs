@@ -1,6 +1,7 @@
 import qualified Data.Map as M
 import Control.Monad.Trans.State
 import Control.Monad
+import Data.Bool
 import Text.ParserCombinators.Parsec hiding (State)
 import Text.ParserCombinators.Parsec.Combinator
 
@@ -42,7 +43,7 @@ doInstruction :: Instruction -> Operation
 doInstruction (JumpInstr offset) = jumpBy offset
 doInstruction (ConditionlalJumpInstr r pred offset) = do
   v <- gets (reg r)
-  when (pred v) $ jumpBy offset
+  jumpBy . bool 1 offset $ pred v
 doInstruction (RegisterInstr f r) = do
   v <- gets (reg r)
   modify $ changeIP 1 . writeReg r (f v)
