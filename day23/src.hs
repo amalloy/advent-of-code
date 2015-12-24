@@ -1,6 +1,7 @@
 import qualified Data.Map as M
 import Control.Monad.Trans.State
 import Control.Monad
+import Control.Arrow ((&&&))
 import Data.Bool
 import Text.ParserCombinators.Parsec hiding (State)
 import Text.ParserCombinators.Parsec.Combinator
@@ -11,6 +12,11 @@ type Offset = Int
 
 data Instruction = RegisterInstr (Value -> Value) Register
                  | JumpInstr Offset | ConditionlalJumpInstr Register (Value -> Bool) Offset
+
+instance Show Instruction where
+  show (RegisterInstr f r) = "reg " ++ [r]
+  show (JumpInstr o) = "jmp " ++ (show o)
+  show (ConditionlalJumpInstr r f o) = "jif " ++ [r] ++ ", " ++ (show o)
 
 type Program = M.Map Int Instruction
 type Registers = M.Map Register Value
@@ -104,4 +110,5 @@ load = Computer firstAddress (M.fromList $ zip ['a'..'z'] (repeat 0))
 solve :: Register -> Computer -> Value
 solve r c = evalState (runProgram >> gets (reg r)) c
 
-main = interact $ show . solve 'b' . load . doParse parseProgram
+main = interact $ show . (solve 'b' &&& solve 'b' . writeReg 'a' 1)
+                         . load . doParse parseProgram
