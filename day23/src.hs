@@ -78,20 +78,20 @@ offset = do
     '+' -> amt
 
 parseLabel :: String -> CharParser () ()
-parseLabel s = string s >> char ' ' >> return ()
+parseLabel s = try (string s) >> char ' ' >> return ()
 
 jmp :: CharParser () Instruction
-jmp = try $ parseLabel "jmp" >> JumpInstr <$> offset
+jmp = parseLabel "jmp" >> JumpInstr <$> offset
 
 jumpInstr :: String -> (Value -> Bool) -> CharParser () Instruction
-jumpInstr name pred = try $ do
+jumpInstr name pred = do
   parseLabel name
   reg <- anyChar
   string ", "
   ConditionlalJumpInstr reg pred <$> offset
 
 regInstr :: String -> (Value -> Value) -> CharParser () Instruction
-regInstr name f = try $ parseLabel name >> RegisterInstr f <$> anyChar
+regInstr name f = parseLabel name >> RegisterInstr f <$> anyChar
 
 parseProgram :: CharParser () Program
 parseProgram = do
