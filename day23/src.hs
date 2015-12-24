@@ -1,8 +1,10 @@
 import qualified Data.Map as M
 import Control.Monad.Trans.State
 import Control.Monad
+import Text.ParserCombinators.Parsec hiding (State)
+import Text.ParserCombinators.Parsec.Combinator
 
-type Register = String
+type Register = Char
 type Value = Int
 type Offset = Int
 
@@ -10,12 +12,16 @@ data Instruction = RegisterInstr (Value -> Value) Register
                  | JumpInstr Offset | ConditionlalJumpInstr Register (Value -> Bool) Offset
 
 type Program = M.Map Int Instruction
-type Registers = M.Map String Value
+type Registers = M.Map Register Value
 
-data Computer = Computer {program :: Program,
+data Computer = Computer {ip :: Int,
                           registers :: Registers,
-                          ip :: Int}
+                          program :: Program
+                          }
 type Operation = State Computer ()
+
+firstAddress :: Int
+firstAddress = 0
 
 currentInstruction :: Computer -> Maybe Instruction
 currentInstruction = M.lookup <$> ip <*> program
@@ -40,3 +46,56 @@ doInstruction (ConditionlalJumpInstr r pred offset) = do
 doInstruction (RegisterInstr f r) = do
   v <- gets (reg r)
   modify $ changeIP 1 . writeReg r (f v)
+
+runProgram :: Operation
+runProgram = do
+  instr <- gets currentInstruction
+  case instr of
+    Nothing -> return () -- IP out of bounds, so terminate
+    (Just instr) -> doInstruction instr >> runProgram
+
+instruction :: CharParser () Instruction
+instruction = regInstr "tpl" (* 3) <|>
+              regInstr "hlf" (`div` 2) <|>
+              regInstr "inc" (+ 1) <|>
+              jmp <|>
+              jumpInstr "jie" even <|>
+              jumpInstr "jio" (== 1)
+
+offset :: CharParser () Offset
+offset = do
+  sign <- char '-' <|> char '+'
+  amt <- read <$> many digit
+  return $ case sign of
+    '-' -> negate amt
+    '+' -> amt
+
+parseLabel :: String -> CharParser () ()
+parseLabel s = string s >> char ' ' >> return ()
+
+jmp :: CharParser () Instruction
+jmp = parseLabel "jmp" >> JumpInstr <$> offset
+
+jumpInstr :: String -> (Value -> Bool) -> CharParser () Instruction
+jumpInstr name pred = do
+  parseLabel name
+  reg <- anyChar
+  string ", "
+  ConditionlalJumpInstr reg pred <$> offset
+
+regInstr :: String -> (Value -> Value) -> CharParser () Instruction
+regInstr name f = parseLabel name >> RegisterInstr f <$> anyChar
+
+parseProgram :: CharParser () Program
+parseProgram = do
+  instrs <- instruction `sepEndBy` newline
+  return $ M.fromList (zip [firstAddress..] instrs)
+
+-- partial function, only works because input is always well formed
+doParse :: CharParser () a -> String -> a
+doParse p s = case runParser p () "input" s of
+  (Left e) -> error ":("
+  (Right x) -> x
+
+load :: Program -> Computer
+load = Computer firstAddress (M.fromList $ zip ['a'..'z'] (repeat 0))
