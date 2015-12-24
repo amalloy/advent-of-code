@@ -100,3 +100,8 @@ doParse p s = case runParser p () "input" s of
 
 load :: Program -> Computer
 load = Computer firstAddress (M.fromList $ zip ['a'..'z'] (repeat 0))
+
+solve :: Register -> Computer -> Value
+solve r c = evalState (runProgram >> gets (reg r)) c
+
+main = interact $ show . solve 'b' . load . doParse parseProgram
