@@ -75,7 +75,7 @@ offset = do
   sign . read <$> many digit
 
 parseLabel :: String -> CharParser () ()
-parseLabel s = try (string s) >> char ' ' >> return ()
+parseLabel s = try (string s >> char ' ') >> return ()
 
 jmp :: CharParser () Instruction
 jmp = parseLabel "jmp" >> JumpInstr <$> offset
