@@ -20,24 +20,25 @@ chooseSummingTo n sum (x:xs)
                  ++ [(x:summed, more) | (summed, more) <- with]
   | otherwise = []
 
-canSplitInto :: (Num a, Ord a) => [a] -> a -> Bool
-xs `canSplitInto` n = go n n xs where
-  go 0 0 [] = True
-  go _ _ [] = False
-  go a b (x:xs) = x <= a && go (a-x) b xs || go a (b-x) xs
+canSplitInto :: (Num a, Ord a, Enum a) => [a] -> a -> a -> Bool
+canSplitInto xs numGroups groupSize = go xs initMap where
+  initMap = M.fromList . zip [1..numGroups] . repeat $ groupSize
+  go [] m = all (== 0) . M.elems $ m
+  go (x:xs) m = any canFit . M.toList $ m
+    where canFit (bucket, remain) = x <= remain && go xs (M.insert bucket (remain-x) m)
 
-firstGroups :: (Num a, Ord a, Integral a) => Int -> [a] -> [[a]]
-firstGroups numItems xs = do
+firstGroups :: (Num a, Ord a, Integral a) => Int -> a -> [a] -> [[a]]
+firstGroups numItems numGroups xs = do
   (first, rest) <- chooseSummingTo numItems groupSize xs
-  guard $ rest `canSplitInto` groupSize
+  guard $ canSplitInto rest (numGroups-1) groupSize
   return first
-  where groupSize = sum xs `div` 3
+  where groupSize = sum xs `div` numGroups
 
-solve :: [Integer] -> Integer
-solve xs = go 1
-   where go numItems = case firstGroups numItems xs of
+solve :: Integer -> [Integer] -> Integer
+solve numGroups xs = go 1
+   where go numItems = case firstGroups numItems numGroups xs of
            [] -> go $ numItems + 1
            solutions -> product $ minimumBy preference solutions
          preference = comparing length <> comparing product
 
-main = interact $ show . solve . parse
+main = interact $ show . (solve 3 &&& solve 4) . parse
