@@ -64,4 +64,12 @@ part2 (Problem grammar goal) =
       success = (["e"] `elem`)
   in  length . takeWhile (not . success) $ steps
 
-main = interact $ show . (part1 &&& part2) . parse
+part2Cheat :: Problem Atom -> Int
+part2Cheat (Problem grammar goal) = num (const True) - num paren - (2 * num comma) - 1
+  where paren "Rn" = True
+        paren "Ar" = True
+        paren _ = False
+        comma = (== "Y")
+        num pred = length . filter pred $ goal
+
+main = interact $ show . (part1 &&& part2Cheat) . parse
