@@ -18,9 +18,7 @@ updateIn m k f v = M.unionWith f m $ M.singleton k v
 
 bake :: Recipe -> Bakery Cookie
 bake = foldM mix M.empty . M.toList where
-  mix m (ingredient, amount) = do
-    impact <- asks (M.! ingredient)
-    return $ foldr add m impact
+  mix m (ingredient, amount) = foldr add m <$> asks (M.! ingredient)
     where add (Factor stat i) m = updateIn m stat (+) (i * amount)
 
 parse :: String -> (Ingredient, Impact)
@@ -45,7 +43,6 @@ score = product . map (max 0) . M.elems
 
 makeCookies :: Cookbook -> [Cookie]
 makeCookies m = do
-  let ingrs = M.keys m
   recipe <- mixes 100 (M.keys m)
   return $ runReader (bake recipe) m
 
