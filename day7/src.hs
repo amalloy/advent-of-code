@@ -63,11 +63,10 @@ parseBinary op left right dst = Wire dst $
           [] -> From x
 
 parseShift :: Char -> String -> Label -> Source
-parseShift dir amt src = Unary (Shift ((case dir of
-                                           'L' -> id
-                                           'R' -> negate)
-                                       $ read amt))
-                         src
+parseShift dir = Unary . Shift . case dir of
+  'L' -> id
+  'R' -> negate
+  . read
 
 solve :: Circuit -> Int
 solve = evalState (eval "a")
