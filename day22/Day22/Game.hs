@@ -36,7 +36,7 @@ data Combat = Combat {turn :: Turn,
 adjustPlayerHP :: Int -> Combat -> Combat
 adjustPlayerHP amt combat@(Combat {player = p}) = combat {player = p {hp = hp p + amt}}
 
-adjustPlayerMP :: Int -> Combat -> Combat
+adjustPlayerMP :: MP -> Combat -> Combat
 adjustPlayerMP amt combat@(Combat {player = p}) = combat {player = p {mp = mp p + amt}}
 
 adjustBossHP :: Int -> Combat -> Combat
