@@ -53,6 +53,9 @@ applyHardMode c = case (hardMode c, turn c) of
   (True, PlayerTurn) -> c
   (True, BossTurn) -> adjustPlayerHP (-1) c
 
+effectActive :: Effect -> Combat -> Bool
+effectActive effect combat = effect `elem` (map fst $ activeEffects combat)
+
 runEffects :: Combat -> Combat
 runEffects combat = applyHardMode . decrementDurations $
                     foldr runEffect combat (fst <$> activeEffects combat)
@@ -79,7 +82,7 @@ nexts c = map (runEffects . switchTurns <$>) $ case turn c of
   PlayerTurn -> runPlayerTurn c
 
 playerAC :: Combat -> Int
-playerAC combat = bool 0 7 $ Shield `elem` (map fst $ activeEffects combat)
+playerAC = bool 0 7 . effectActive Shield
 
 runBossTurn :: Combat -> Combat
 runBossTurn combat = let ac = playerAC combat
@@ -93,13 +96,14 @@ applySpell c spell = case spell of
   (Instant Missile) -> adjustBossHP (-4) c
   (Instant Drain) -> adjustBossHP (-2) . adjustPlayerHP 2 $ c
 
-applicableSpells :: Combat -> [(MP, Spell)]
+applicableSpells :: Combat -> Spellbook
 applicableSpells c = do
   s@(mana, spell) <- wizardSpells
   guard $ (mp (player c)) >= mana
-  case spell of
-    (Instant _) -> return s
-    (Effect e _) -> bool [s] [] $ e `elem` (map fst (activeEffects c))
+  guard $ case spell of
+    (Instant _) -> True
+    (Effect e _) -> not $ effectActive e c
+  return s
 
 runPlayerTurn :: Combat -> [(MP, Combat)]
 runPlayerTurn c = do
