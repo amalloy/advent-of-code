@@ -2,9 +2,8 @@ import Control.Arrow
 import Data.List (nub)
 
 alternate :: [a] -> ([a], [a])
-alternate [] = ([], [])
-alternate (x:xs) = (right, x:left)
-  where (left,right) = alternate xs
+alternate = foldr assign ([], [])
+  where assign x (left, right) = (x:right, left)
 
 move :: Num a => (a,a) -> Char -> (a,a)
 move (x,y) c = case c of
