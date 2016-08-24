@@ -2,15 +2,15 @@ module Day22.Game where
 
 import Day22.Search
 import Data.Bool (bool)
-import Control.Monad
 
 type MP = Int
 type Turns = Int
 
 data Effect = Shield | Poison | Recharge deriving (Enum, Eq, Show)
 data Instant = Missile | Drain deriving (Enum, Eq, Show)
-data Spell = Effect Effect Turns | Instant Instant deriving Show
-type Spellbook = [(MP, Spell)]
+data SpellRule = Effect Effect Turns | Instant Instant deriving Show
+type Spell = (MP, SpellRule)
+type Spellbook = [Spell]
 
 wizardSpells :: Spellbook
 wizardSpells = [(53, Instant Missile),
@@ -90,22 +90,19 @@ runBossTurn combat = let ac = playerAC combat
                          damage = max 1 (atk - ac)
                      in adjustPlayerHP (- damage) combat
 
-applySpell :: Combat -> Spell -> Combat
-applySpell c spell = case spell of
+applySpell :: Combat -> SpellRule -> Combat
+applySpell c rule = case rule of
   (Effect e numTurn) -> c {activeEffects = (e, numTurn) : activeEffects c}
   (Instant Missile) -> adjustBossHP (-4) c
   (Instant Drain) -> adjustBossHP (-2) . adjustPlayerHP 2 $ c
 
-applicableSpells :: Combat -> Spellbook
-applicableSpells c = do
-  s@(mana, spell) <- wizardSpells
-  guard $ (mp (player c)) >= mana
-  guard $ case spell of
+spellLegal :: Combat -> Spell -> Bool
+spellLegal c (mana, rule) =
+  mp (player c) >= mana && case rule of
     (Instant _) -> True
     (Effect e _) -> not $ effectActive e c
-  return s
 
 runPlayerTurn :: Combat -> [(MP, Combat)]
 runPlayerTurn c = do
-  (mp, spell) <- applicableSpells c
+  (mp, spell) <- filter (spellLegal c) wizardSpells
   return $ (mp, adjustPlayerMP (negate mp) $ applySpell c spell)
