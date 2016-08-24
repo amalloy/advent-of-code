@@ -61,12 +61,14 @@ runEffects combat = applyHardMode . decrementDurations $
               effects' = filter ((/= 0) . snd) . map (fmap pred) $ effects
           in c {activeEffects = effects'}
 
+runEffect :: Effect -> Combat -> Combat
 runEffect effect combat@(Combat {player = p, boss = b}) =
   case effect of
     Shield -> combat -- effect is considered during attack phase
     Poison -> adjustBossHP (-3) combat
     Recharge -> adjustPlayerMP 101 combat
 
+switchTurns :: Combat -> Combat
 switchTurns c@(Combat {turn=turn}) = c {turn = case turn of
                                            BossTurn -> PlayerTurn
                                            PlayerTurn -> BossTurn}
