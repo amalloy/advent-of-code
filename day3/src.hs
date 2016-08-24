@@ -1,7 +1,6 @@
 import Control.Arrow
 import Control.Applicative (liftA2)
 import Data.List (nub)
-import Data.Function (on)
 
 alternate :: [a] -> ([a], [a])
 alternate [] = ([], [])
@@ -24,5 +23,5 @@ presents = length . nub
 
 main = interact $ show . (part1 &&& part2)
   where part1 = presents . houses
-        part2 moves = presents $ ((++) `on` houses) santa robot
-          where (santa, robot) = alternate moves
+        part2 moves = presents $ houses =<< [santa, robot]
+          where (santa, robot) = alternate moves :: ([Int], [Int])
