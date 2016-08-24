@@ -25,7 +25,7 @@ eval s = do
   return new
   where go (Const x) = return x
         go (Unary op label) = runUnary op <$> eval label
-        go (Binary op x y) = runBinary op <$> (process x) <*> (process y)
+        go (Binary op x y) = runBinary op <$> process x <*> process y
         process (Source x) = return x
         process (From wire) = eval wire
 
