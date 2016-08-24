@@ -48,14 +48,14 @@ parse s = (op, Range lower upper)
         parseOp "on" = On
         parseOp "off" = Off
         parseCoord s = (x,y)
-          where [x,y] = map (read :: String -> Int) . splitWith (== ',') $ s
+          where [x,y] = map read . splitWith (== ',') $ s
 
 coordList :: Range -> [Coord]
 coordList r@(Range (x1,y1) (x2,y2)) = [(x,y) | x <- [x1..x2], y <- [y1..y2]]
 
 interpret :: Light a => (Operation, Range) -> State (Display a) ()
-interpret (op, range) = forM_ (coordList range) $ \coord -> do
-  modify (M.alter insert coord)
+interpret (op, range) = forM_ (coordList range) $ \coord ->
+  modify $ M.alter insert coord
   where insert Nothing = Just $ apply op off
         insert (Just old) = Just $ apply op old
 
