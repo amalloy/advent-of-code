@@ -1,5 +1,4 @@
 import Control.Arrow
-import Control.Applicative (liftA2)
 import Data.List (nub)
 
 alternate :: [a] -> ([a], [a])
