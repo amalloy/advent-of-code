@@ -1,10 +1,10 @@
 import Data.List (group)
 import Data.Char (digitToInt, isDigit)
+import Data.Traversable (sequenceA)
 import Control.Arrow
 
 lookAndSay :: [Int] -> [Int]
-lookAndSay xs = group xs >>= describe
-  where describe x = [length x, head x]
+lookAndSay xs = group xs >>= sequenceA [length, head]
 
 expand :: [Int] -> [[Int]]
 expand = iterate lookAndSay
