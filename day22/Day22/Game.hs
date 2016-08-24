@@ -3,6 +3,7 @@ module Day22.Game where
 import Day22.Search
 import Data.Bool (bool)
 
+type HP = Int
 type MP = Int
 type Turns = Int
 
@@ -19,9 +20,9 @@ wizardSpells = [(53, Instant Missile),
                 (173, Effect Poison 6),
                 (229, Effect Recharge 5)]
 
-data Boss = Boss {health :: Int,
-                  attack :: Int} deriving Show
-data Player = Player {hp :: Int,
+data Boss = Boss {health :: HP,
+                  attack :: HP} deriving Show
+data Player = Player {hp :: HP,
                       mp :: MP} deriving Show
 
 data Turn = PlayerTurn | BossTurn deriving Show
@@ -33,13 +34,13 @@ data Combat = Combat {turn :: Turn,
                      }
               deriving Show
 
-adjustPlayerHP :: Int -> Combat -> Combat
+adjustPlayerHP :: HP -> Combat -> Combat
 adjustPlayerHP amt combat@(Combat {player = p}) = combat {player = p {hp = hp p + amt}}
 
 adjustPlayerMP :: MP -> Combat -> Combat
 adjustPlayerMP amt combat@(Combat {player = p}) = combat {player = p {mp = mp p + amt}}
 
-adjustBossHP :: Int -> Combat -> Combat
+adjustBossHP :: HP -> Combat -> Combat
 adjustBossHP amt combat@(Combat {boss = b}) = combat {boss = b {health = health b + amt}}
 
 outcome :: Combat -> Result
