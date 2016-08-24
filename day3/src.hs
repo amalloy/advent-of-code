@@ -9,11 +9,11 @@ move :: Num a => (a,a) -> Char -> (a,a)
 move (x,y) c = case c of
   '<' -> (x-1,y)
   '>' -> (x+1,y)
-  '^' -> (x, y+1)
-  'v' -> (x, y-1)
-  _ -> (x,y)
+  '^' -> (x  ,y+1)
+  'v' -> (x  ,y-1)
+  _   -> (x  ,y)
 
-houses :: [Char] -> [(Int, Int)]
+houses :: Num a => [Char] -> [(a, a)]
 houses = scanl move (0,0)
 
 presents :: Eq a => [(a,a)] -> Int
