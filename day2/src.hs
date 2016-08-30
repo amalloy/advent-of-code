@@ -6,7 +6,7 @@ splitWith p s = case break p s of
   (before, (_:after)) -> before : splitWith p after
 
 parse :: String -> [Int]
-parse = map (read :: String -> Int) . splitWith (== 'x')
+parse = map read . splitWith (== 'x')
 
 faces :: [Int] -> [Int]
 faces [x,y,z] = [x*y, y*z, x*z]
