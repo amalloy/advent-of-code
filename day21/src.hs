@@ -83,10 +83,7 @@ shopSection :: CharParser () (Slot, [Item])
 shopSection = (,) <$> sectionHeader <*> many shopItem
 
 sectionHeader :: CharParser () Slot
-sectionHeader = do
-  slot <- many1 letter
-  manyTill anyChar newline
-  return $ readSlot slot
+sectionHeader = readSlot <$> many1 letter <* manyTill anyChar newline
   where readSlot "Weapons" = Weapon
         readSlot "Armor" = Armor
         readSlot "Rings" = Ring
