@@ -16,7 +16,7 @@ move (x,y) c = case c of
 houses :: Num a => [Char] -> [(a, a)]
 houses = scanl move (0,0)
 
-presents :: Eq a => [(a,a)] -> Int
+presents :: Eq a => [a] -> Int
 presents = length . nub
 
 main = interact $ show . (part1 &&& part2)
