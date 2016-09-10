@@ -1,3 +1,5 @@
+module Main where
+
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Combinator
 import qualified Data.Map as M
